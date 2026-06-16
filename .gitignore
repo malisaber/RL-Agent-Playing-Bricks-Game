@@ -1,0 +1,8 @@
+data.mat
+Backup/
+*.asv
+*.mexw64
+*.mexmaci64
+*.mexglx
+*.m~
+*.fig
