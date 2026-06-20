@@ -11,10 +11,6 @@ The environment represents a vertical playfield where bricks of different length
 ![Demo](videos/animation_1.gif)
 
 
-## Demo2
-hiiiiiii
-
-
 ## Features
 
 - Custom MATLAB environment implemented in [`src/Bricks_Env.m`](src/Bricks_Env.m)
