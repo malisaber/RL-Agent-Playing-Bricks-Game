@@ -30,6 +30,7 @@ classdef Bricks_Env < handle
 		fig;
 		ax;
 		tit_objct;
+		video;
 	end
 	
 	
@@ -301,66 +302,11 @@ classdef Bricks_Env < handle
 				end
 				col = col + brk_size + (brk_size == 0);
 			end
-			%for row = 1:obj.hight
-			%	col = 1;
-			%	row_sum = sum(rep(row, :));
-			%	while (col <= obj.column) && (row_sum ~= 0)
-			%		brick_size = rep(row, col);
-			%		if brick_size ~= 0
-			%			plot(obj.ax,							...
-			%					[col-0.8, col+brick_size-1.2],	...
-			%					[row-0.5, row-0.5],				...
-			%					'LineWidth', 15,				...
-			%					'Marker', 'o',					...
-			%					'MarkerSize', 1.5,				...
-			%					'Tag', 'state');
-			%		end
-			%		col = col + brick_size + (brick_size == 0);
-			%	end
-			%end
+			
 			obj.tit_objct.String = str;
 			if ~isempty(act)
-				[row_idx, col_idx, col_nxt] = obj.act2idx(act);
-				%disp([row_idx, col_idx, col_nxt]);
-				%brk_size = rep(row_idx, col_idx);
-				%row_cntr = row_idx;
-				%for rows = (row_idx-1):-1:1
-				%	if rep(rows, col_nxt:(col_nxt+brk_size-1)) ~= 0
-				%		row_cntr = rows + 1;
-				%		break;
-				%	end
-				%end
+				[~, ~, ~] = obj.act2idx(act);
 				
-				
-				
-				%if (row_idx == 1) || (row_cntr == row_idx)
-				% ah = annotation('arrow');
-				% ah.Parent = gca;              % Place in current axes
-				% ah.Position = [col_idx-0.8, row_idx-0.5, col_nxt-col_idx, 0];
-				% ah.HeadWidth = 25;
-				% ah.HeadLength = 25;
-				% ah.LineWidth = 4;
-				% ah.Color = 'k';
-				% ah.Tag = 'arrow';
-				%else
-				%	plot(obj.ax,					...
-				%		[col_idx-0.8, col_nxt-0.8],	...
-				%		[row_idx-0.5, row_idx-0.5], ...
-				%		'LineWidth', 5,				...
-				%		'Marker', 'o',				...
-				%		'MarkerSize', 0.75,			...
-				%		'Color', 'k',				...
-				%		'Tag', 'arrow',				...
-				%		'DisplayName', 'state');
-				%	ah = annotation('arrow');
-				%	ah.Parent = gca;              % Place in current axes
-				%	ah.Position = [col_nxt-0.8, row_idx-0.5, 0, (row_cntr-row_idx)];
-				%	ah.HeadWidth = 25;
-				%	ah.HeadLength = 25;
-				%	ah.LineWidth = 4;
-				%	ah.Color = 'k';
-				%	ah.Tag = 'arrow';
-				%end
 			end
 		end
 		
@@ -389,6 +335,8 @@ classdef Bricks_Env < handle
 					%disp([r, c, n]);
 				end
 				drawnow
+				frame = getframe(gcf);
+				writeVideo(obj.video, frame);
 				for hcnt = 1:siz
 					BID		= nBID;
 					nBID	= cell2mat(hist(hcnt, 1));
@@ -440,6 +388,8 @@ classdef Bricks_Env < handle
 				act_obj.XData = act_obj.XData + (col_nxt - col_idx) / obj.frame_len;
 				pause(obj.frame_dur);
 				drawnow;
+				frame = getframe(gcf);
+				writeVideo(obj.video, frame);
 			end
 		end
 		
@@ -468,6 +418,8 @@ classdef Bricks_Env < handle
 						end
 						pause(obj.frame_dur);
 						drawnow;
+						frame = getframe(gcf);
+						writeVideo(obj.video, frame);
 					end
 				end
 			end
@@ -483,6 +435,8 @@ classdef Bricks_Env < handle
 				end
 				pause(obj.frame_dur);
 				drawnow;
+				frame = getframe(gcf);
+				writeVideo(obj.video, frame);
 			end
 		end
 		
@@ -522,6 +476,8 @@ classdef Bricks_Env < handle
 					end
 					pause(obj.frame_dur);
 					drawnow;
+					frame = getframe(gcf);
+					writeVideo(obj.video, frame);
 				end
 			end
 		end
@@ -547,6 +503,8 @@ classdef Bricks_Env < handle
 			end
 			pause(obj.frame_dur);
 			drawnow;
+			frame = getframe(gcf);
+			writeVideo(obj.video, frame);
 		end
 		
 		
@@ -922,7 +880,7 @@ classdef Bricks_Env < handle
 		
 		
 		% simulate an episode
-		function History = simulate(obj, runs, Net,	Epsilon, max_length, sleep_time, flen, start_point)
+		function History = simulate(obj, runs, Net,	Epsilon, max_length, sleep_time, flen, start_point, path)
 			obj.trace_en = true;
 			obj.show();
 			obj.frame_len	= flen;
@@ -931,6 +889,10 @@ classdef Bricks_Env < handle
 			end
 			History = cell(runs, 4);
 			for run = 1:runs
+				% Openning the video
+				Video_name = fullfile(path, "animation_" + run +  ".mp4");
+				obj.create_video_file(Video_name);
+				% Simulation
 				rew = 0;
 				if isempty(start_point)
 					obj.restart();
@@ -959,6 +921,9 @@ classdef Bricks_Env < handle
 						break;
 					end
 				end
+				% closing the video
+				obj.closing_video();
+				disp("The simulation video saved at """ + Video_name + """")
 				%str = "#(" + string(run) + "), @" + string(step) + ", Reward = " + string(rew);
 				%obj.draw_env_state_morph(ep_n, [], str, BID, obj.toBinserted, obj.Hist);
 				pause(2*sleep_time);
@@ -1013,6 +978,22 @@ classdef Bricks_Env < handle
 			end
 			obj.fig.Visible = 'off';
 		end
+		
+		
+		% Creating a video file
+		function create_video_file(obj, Video_name)
+			obj.video = VideoWriter(Video_name, 'MPEG-4');
+			obj.video.FrameRate = 10;
+			open(obj.video);
+		end
+		
+		
+		% closing the video file
+		function closing_video(obj)
+			close(obj.video);
+		end
+		
+		
 	end
 	
 end

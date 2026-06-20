@@ -6,6 +6,10 @@ Bricks is a MATLAB reinforcement-learning project that trains a Deep Q-Network (
 
 The environment represents a vertical playfield where bricks of different lengths arrive at the top, move downward, and can be shifted horizontally. The agent learns which move to choose so that it clears rows, avoids illegal moves, and survives as long as possible.
 
+## Demo
+![Demo](videos/animation_1.gif)
+
+
 ## Features
 
 - Custom MATLAB environment implemented in [`src/Bricks_Env.m`](src/Bricks_Env.m)
@@ -29,8 +33,10 @@ The environment represents a vertical playfield where bricks of different length
 |   |-- clip.m
 |   |-- huberLoss.m
 |   |-- main.m
-|   `-- select.m
-`-- Backup/            # created automatically for checkpoints
+|   |-- select.m
+|   `-- data.mat		# pre-trained network
+|-- videos/				# all simulations automatically will save here.
+`-- Backup/				# created automatically for checkpoints
 ```
 
 ## Architecture
@@ -56,10 +62,10 @@ flowchart LR
 ## How It Works
 
 1. `src/main.m` configures the environment, network sizes, and training hyperparameters.
-2. `src/Bricks_Env.m` generates states, legal actions, rewards, and episode transitions.
+2. `src/Bricks_Env.m` generates states, legal actions, rewards, and episode transitions. and also provides simulation and visualization helpers for watching the learned policy.
 3. `src/DQN.m` fills the replay buffer, samples minibatches, trains the online network, and periodically syncs the target network.
 4. `src/Network.m` builds the neural network and wraps forward, training, and monitoring utilities.
-5. `src/Bricks_Env.m` also provides simulation and visualization helpers for watching the learned policy.
+
 
 ## Guide
 
@@ -91,6 +97,7 @@ The script will:
 
 - `data.mat` stores the latest training state
 - `Backup/data_back_*.mat` stores periodic checkpoints
+- `videos/` stores the simulaition animation
 
 ## Notes
 

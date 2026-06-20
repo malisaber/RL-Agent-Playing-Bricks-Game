@@ -2,30 +2,50 @@ close all force
 clear
 clc
 
-src_dir			= fileparts(mfilename("fullpath"));
-repo_root		= fileparts(src_dir);
-addpath(src_dir);
-data_file		= fullfile(repo_root, "data.mat");
-load_en			= isfile(data_file);
 
+% set this variable to "true" for using pretrained network for 5X5 game.
+load_en			= true; 
+
+
+% creating foolders
+vid_dir			= fullfile("..", "videos");
+if ~isfolder(vid_dir),	mkdir(vid_dir),	end
 
 
 % % Initialization
 gamma			= 0.99;
+
+% Probability of different bricks with different sizes, sorted from small
+% to large
+%                 
+%	Brick size:	   empty 1  2  3  4 
 Probs			= [1.15, 1, 1, 1, 0];
+
+% Size of the game
 hight			= 6;
 column			= 5;
-base_rwrd		= 0.05;
-cler_rwrd		= 0 / column;
-done_rwrd		= -10;
-ilgl_rwrd		= -inf;
-hght_rwrd		= 0;
+
+% rewards
+base_rwrd		= 0.00;			% reward for every step that the agent takes
+cler_rwrd		= 1 / column;	% reward for clearing a row
+done_rwrd		= -10;			% reward for loosing the game
+ilgl_rwrd		= -inf;			% reward for illigal actions (handled internally)
+hght_rwrd		= 0;			% reward for stack height
+
 
 many			= sum(Probs ~= 0)-1;
 state_row_siz	= (many * column - sum(1:(many-1)));
+
+% Network Sizes
 inp_size		= hight * state_row_siz;
 hid_size		= [1024, 512, 256];
 out_size		= hight * column * column;
+
+
+% number of simultions 
+sim_cnt = 1;
+
+% Other parameters 
 alpha			= 0.0005;
 delta	 		= 1;
 epsilon			= 1;
@@ -38,9 +58,9 @@ upd_freq		= 1000;
 num_episodes	= 10000;
 Val_scens		= 1;
 inv_act_val		= -1e9;
-sleep_time		= 2;
+sleep_time		= 0.01;
 frame_len		= 5;
-frame_dur		= 0.2;
+frame_dur		= 0.1;
 
 % Task 1, Environment
 Env = Bricks_Env(	gamma,			Probs,			hight,		...
@@ -78,15 +98,15 @@ if ~load_en
 				batch_size,		upd_freq,		num_episodes,	...
 				Val_scens,  	DQN_AveRet, 	DQN_Val_AveRet, ...
 				DQN_losses, 	DQN_Val_losses,	last_episode,	...
-				step_cntr,		inv_act_val,	repo_root);
+				step_cntr,		inv_act_val);
 	
 	net = Net.Net;
-	save(	data_file,		"DQN_AveRet",		"DQN_Val_AveRet",	...
+	save(	"data.mat",		"DQN_AveRet",		"DQN_Val_AveRet",	...
 			"DQN_losses",	"DQN_Val_losses",	"last_episode",		...
 			"step_cntr",	"net");
 	clear net
 else
-	load (data_file)
+	load ("data.mat")
 	Net.Net = net;
 	clear net; 
 end
@@ -95,12 +115,12 @@ end
 elapsed = toc;
 Net.plot_net();
 fprintf('Elapsed time of DQN: %.4f seconds\n\n', elapsed);
-Env.simulate(3,	Net,	0,	ep_len,	sleep_time, frame_len, []);
+Env.simulate(sim_cnt,	Net,	0,	ep_len,	sleep_time, frame_len, [], vid_dir);
 
 
 
 % comparison
-window = 1000;
+window = 50;
 DQN_AveRet_Ts		= movmean(DQN_AveRet,		window, 'Endpoints','fill');
 DQN_AveRet_Vs		= movmean(DQN_Val_AveRet,	window, 'Endpoints','fill');
 figure; 
