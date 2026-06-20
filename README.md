@@ -6,8 +6,13 @@ Bricks is a MATLAB reinforcement-learning project that trains a Deep Q-Network (
 
 The environment represents a vertical playfield where bricks of different lengths arrive at the top, move downward, and can be shifted horizontally. The agent learns which move to choose so that it clears rows, avoids illegal moves, and survives as long as possible.
 
+
 ## Demo
 ![Demo](videos/animation_1.gif)
+
+
+## Demo2
+hiiiiiii
 
 
 ## Features
